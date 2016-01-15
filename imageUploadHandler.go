@@ -19,10 +19,6 @@ type ImageInfo struct {
 }
 
 func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
-	if part.FileName() == "" {
-		err = errors.New("filename is empty")
-		return
-	}
 	savePath := getNewSaveName(part.FileName())
 	dst, err := os.Create(savePath)
 
@@ -57,6 +53,9 @@ func handleImageUpload(res http.ResponseWriter, req *http.Request) {
 		part, err := reader.NextPart()
 		if err == io.EOF {
 			break
+		}
+		if part.FileName() == "" {
+			continue
 		}
 		info, err := handleSaveSingleImage(part)
 		fmt.Println(info.Name, info.Width, info.Height)
