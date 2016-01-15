@@ -1,4 +1,4 @@
-package main
+package helper
 
 import (
 	"image"
@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func getImageDimensions(filepath string) (width int, height int) {
+func GetImageDimensions(filepath string) (width int, height int) {
 	if reader, err := os.Open(filepath); err == nil {
 		defer reader.Close()
 		im, _, err := image.DecodeConfig(reader)

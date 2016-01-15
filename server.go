@@ -27,6 +27,7 @@ func main() {
 type Configuration struct {
 	Addr    string
 	SaveDir string
+	BaseURL string
 }
 
 func readConfig() (error, Configuration) {

@@ -1,25 +1,25 @@
 package main
 
 import (
-	"errors"
-	"fmt"
+	"encoding/json"
 	"github.com/twinj/uuid"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"panda/helper"
 	"path/filepath"
 )
 
 type ImageInfo struct {
-	Name   string
+	Name   string `json:"name"`
 	URL    string
-	Width  int
-	Height int
+	Width  int `json:"width"`
+	Height int `json:"height"`
 }
 
 func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
-	savePath := getNewSaveName(part.FileName())
+	savePath, URL := getSaveNameAndURL(part.FileName())
 	dst, err := os.Create(savePath)
 
 	defer dst.Close()
@@ -32,11 +32,11 @@ func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 		return
 	}
 
-	width, height := getImageDimensions(savePath)
+	width, height := helper.GetImageDimensions(savePath)
 
 	info = ImageInfo{
 		Name:   part.FileName(),
-		URL:    savePath,
+		URL:    URL,
 		Width:  width,
 		Height: height,
 	}
@@ -46,9 +46,10 @@ func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 func handleImageUpload(res http.ResponseWriter, req *http.Request) {
 	reader, err := req.MultipartReader()
 	if err != nil {
-		http.Error(res, err.Error(), http.StatusInternalServerError)
+		helper.WriteErrorResponse(res, err)
 		return
 	}
+	var imgs []ImageInfo
 	for {
 		part, err := reader.NextPart()
 		if err == io.EOF {
@@ -58,14 +59,27 @@ func handleImageUpload(res http.ResponseWriter, req *http.Request) {
 			continue
 		}
 		info, err := handleSaveSingleImage(part)
-		fmt.Println(info.Name, info.Width, info.Height)
+		imgs = append(imgs, info)
 	}
-	io.WriteString(res, "ok")
-	res.WriteHeader(200)
+	bytes, err := json.Marshal(imgs)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	res.Header().Set("Content-Type", "application/json")
+	res.Write(bytes)
 }
 
 func getNewSaveName(filename string) string {
 	_, config := readConfig()
 	newName := uuid.NewV4().String() + filepath.Ext(filename)
 	return filepath.Join(config.SaveDir, newName)
+}
+
+func getSaveNameAndURL(filename string) (savename string, URL string) {
+	_, config := readConfig()
+	newName := uuid.NewV4().String() + filepath.Ext(filename)
+	savename = filepath.Join(config.SaveDir, newName)
+	URL = filepath.Join(config.BaseURL, newName)
+	return
 }
