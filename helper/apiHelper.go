@@ -10,6 +10,11 @@ type ApiError struct {
 	Error string `json:"error"`
 }
 
+type ApiResponse struct {
+	Code    int         `json:"code"`
+	Payload interface{} `json:"payload"`
+}
+
 func WriteErrorResponse(res http.ResponseWriter, err error) {
 	apiError := ApiError{
 		Code:  1,
@@ -20,5 +25,19 @@ func WriteErrorResponse(res http.ResponseWriter, err error) {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	res.Write(bytes)
+}
+
+func WriteResponse(res http.ResponseWriter, payload interface{}) {
+	response := ApiResponse{
+		Code:    0,
+		Payload: payload,
+	}
+	bytes, err := json.Marshal(response)
+	if err != nil {
+		WriteErrorResponse(res, err)
+		return
+	}
+	res.Header().Set("Content-Type", "application/json")
 	res.Write(bytes)
 }

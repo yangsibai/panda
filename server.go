@@ -3,31 +3,42 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-martini/martini"
+	"github.com/julienschmidt/httprouter"
+	"github.com/rs/cors"
 	"log"
+	"net/http"
 	"os"
 )
 
-func main() {
-	err, config := readConfig()
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	m := martini.Classic()
+func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprint(w, "hello")
+}
 
-	m.Get("/", func() string {
-		return "Yes, commander!"
+var config Configuration
+
+func main() {
+	c := cors.New(cors.Options{
+		AllowedOrigins:   config.CorHosts,
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST"},
 	})
 
-	m.Post("/upload/img", handleImageUpload)
-	m.RunOnAddr(config.Addr)
+	router := httprouter.New()
+	router.GET("/", Index)
+	router.POST("/upload/img", handleImageUpload)
+	router.GET("/img/:id", HandleSingleImage)
+	router.GET("/info/:id", GetResouceInfo)
+
+	hanlder := c.Handler(router)
+	log.Fatal(http.ListenAndServe(config.Addr, hanlder))
 }
 
 type Configuration struct {
-	Addr    string
-	SaveDir string
-	BaseURL string
+	Addr     string   `json: "addr"`
+	SaveDir  string   `json: "saveDir"`
+	BaseURL  string   `json: "baseURL"`
+	MongoURL string   `json: "mongo"`
+	CorHosts []string `json: "corHosts"`
 }
 
 func readConfig() (error, Configuration) {
@@ -41,4 +52,12 @@ func readConfig() (error, Configuration) {
 		return err, configuration
 	}
 	return nil, configuration
+}
+
+func init() {
+	var err error
+	err, config = readConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

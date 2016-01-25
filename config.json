@@ -1,5 +1,10 @@
 {
-    "addr": ":3000",
+    "addr": ":9020",
     "saveDir": "/Users/massimo/www/static/",
-    "baseURL": "http://192.168.1.88:9999/"
+    "baseURL": "http://192.168.1.88:9999/",
+    "mongo": "mongodb://localhost:27017",
+    "corHosts": [
+        "http://localhost:3000",
+        "http://*.mockplus.cn"
+    ]
 }

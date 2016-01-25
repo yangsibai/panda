@@ -1,32 +1,61 @@
 package main
 
 import (
-	"encoding/json"
-	"github.com/twinj/uuid"
+	"github.com/julienschmidt/httprouter"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"panda/helper"
 	"path/filepath"
+	"time"
 )
 
 type ImageInfo struct {
-	Name   string `json:"name"`
-	URL    string
-	Width  int `json:"width"`
-	Height int `json:"height"`
+	ID        bson.ObjectId     `json:"id" bson:"_id"`
+	Name      string            `json:"name" bson:"name"`
+	BaseDir   string            `json:"-" bson: "baseDir"`
+	Path      string            `json:"path" bson:"path" `
+	Extension string            `json:"extension" bson:"extension"`
+	Width     int               `json:"width" bson:"width"`
+	Height    int               `json:"height" bson:"height"`
+	URL       string            `json:"URL" bson:"URL"`
+	Resizes   map[string]string `json:"resizes" bson:"resizes"`
+}
+
+func storeImage(info *ImageInfo) (err error) {
+	session := getSession()
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+
+	C := session.DB("resource").C("image")
+	if err != nil {
+		return
+	}
+	err = C.Insert(&info)
+	return
 }
 
 func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
-	savePath, URL := getSaveNameAndURL(part.FileName())
-	dst, err := os.Create(savePath)
+	newID := bson.NewObjectId()
+	date := time.Now().Format("20060102")
 
-	defer dst.Close()
+	err = helper.CreateDirIfNotExists(filepath.Join(config.SaveDir, date))
+	if err != nil {
+		return
+	}
+	path := filepath.Join(date, newID.Hex())
+	savePath := filepath.Join(config.SaveDir, path)
+
+	dst, err := os.Create(savePath)
 
 	if err != nil {
 		return
 	}
+
+	defer dst.Close()
 
 	if _, err = io.Copy(dst, part); err != nil {
 		return
@@ -34,16 +63,28 @@ func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 
 	width, height := helper.GetImageDimensions(savePath)
 
+	URL := config.BaseURL + path
 	info = ImageInfo{
-		Name:   part.FileName(),
-		URL:    URL,
-		Width:  width,
-		Height: height,
+		ID:        newID,
+		Name:      part.FileName(),
+		Extension: filepath.Ext(part.FileName()),
+		BaseDir:   config.SaveDir,
+		Path:      path,
+		Width:     width,
+		Height:    height,
+		URL:       URL,
+		Resizes: map[string]string{
+			"w_0": URL,
+		},
+	}
+	err = storeImage(&info)
+	if err != nil {
+		return
 	}
 	return info, nil
 }
 
-func handleImageUpload(res http.ResponseWriter, req *http.Request) {
+func handleImageUpload(res http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	reader, err := req.MultipartReader()
 	if err != nil {
 		helper.WriteErrorResponse(res, err)
@@ -61,25 +102,5 @@ func handleImageUpload(res http.ResponseWriter, req *http.Request) {
 		info, err := handleSaveSingleImage(part)
 		imgs = append(imgs, info)
 	}
-	bytes, err := json.Marshal(imgs)
-	if err != nil {
-		http.Error(res, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	res.Header().Set("Content-Type", "application/json")
-	res.Write(bytes)
-}
-
-func getNewSaveName(filename string) string {
-	_, config := readConfig()
-	newName := uuid.NewV4().String() + filepath.Ext(filename)
-	return filepath.Join(config.SaveDir, newName)
-}
-
-func getSaveNameAndURL(filename string) (savename string, URL string) {
-	_, config := readConfig()
-	newName := uuid.NewV4().String() + filepath.Ext(filename)
-	savename = filepath.Join(config.SaveDir, newName)
-	URL = filepath.Join(config.BaseURL, newName)
-	return
+	helper.WriteResponse(res, imgs)
 }
