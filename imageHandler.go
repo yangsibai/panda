@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func HandleSingleImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func handleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
 	widths := r.URL.Query()["w"]
 	var width int

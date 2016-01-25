@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func GetResouceInfo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func handleGetInfo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
 
 	session := getSession()
@@ -28,7 +28,6 @@ func GetResouceInfo(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 		return
 	}
 
-	// Write content-type, statuscode, payload
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 	w.Write(jo)

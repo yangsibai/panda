@@ -25,9 +25,10 @@ func main() {
 
 	router := httprouter.New()
 	router.GET("/", Index)
-	router.POST("/upload/img", handleImageUpload)
-	router.GET("/img/:id", HandleSingleImage)
-	router.GET("/info/:id", GetResouceInfo)
+	router.POST("/upload/img", handleSingleImageUpload)
+	router.POST("/upload/imgs", handleMultipleImagesUpload)
+	router.GET("/img/:id", handleFetchSingleImage)
+	router.GET("/info/:id", handleGetInfo)
 
 	hanlder := c.Handler(router)
 	log.Fatal(http.ListenAndServe(config.Addr, hanlder))

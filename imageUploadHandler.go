@@ -84,7 +84,7 @@ func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 	return info, nil
 }
 
-func handleImageUpload(res http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func handleMultipleImagesUpload(res http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	if req.ContentLength > config.MaxSize {
 		http.Error(res, "file too large", http.StatusRequestEntityTooLarge)
 		return
@@ -108,4 +108,27 @@ func handleImageUpload(res http.ResponseWriter, req *http.Request, _ httprouter.
 		imgs = append(imgs, info)
 	}
 	helper.WriteResponse(res, imgs)
+}
+
+func handleSingleImageUpload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if r.ContentLength > config.MaxSize {
+		http.Error(w, "file too large", http.StatusRequestEntityTooLarge)
+		return
+	}
+	reader, err := r.MultipartReader()
+	if err != nil {
+		helper.WriteErrorResponse(w, err)
+		return
+	}
+	part, err := reader.NextPart()
+	if err != nil {
+		helper.WriteErrorResponse(w, err)
+		return
+	}
+	img, err := handleSaveSingleImage(part)
+	if err != nil {
+		helper.WriteErrorResponse(w, err)
+		return
+	}
+	helper.WriteResponse(w, img)
 }
