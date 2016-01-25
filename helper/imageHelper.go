@@ -9,9 +9,9 @@ import (
 )
 
 func GetImageDimensions(filepath string) (width int, height int) {
-	if reader, err := os.Open(filepath); err == nil {
-		defer reader.Close()
-		cfg, _, err := image.DecodeConfig(reader)
+	if file, err := os.Open(filepath); err == nil {
+		defer file.Close()
+		cfg, _, err := image.DecodeConfig(file)
 		if err == nil {
 			width = cfg.Width
 			height = cfg.Height
