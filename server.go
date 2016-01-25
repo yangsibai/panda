@@ -39,6 +39,7 @@ type Configuration struct {
 	BaseURL  string   `json: "baseURL"`
 	MongoURL string   `json: "mongo"`
 	CorHosts []string `json: "corHosts"`
+	MaxSize  int64    `json:"maxSize"`
 }
 
 func readConfig() (error, Configuration) {

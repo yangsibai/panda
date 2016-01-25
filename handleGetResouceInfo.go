@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
@@ -32,5 +31,5 @@ func GetResouceInfo(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 	// Write content-type, statuscode, payload
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
-	fmt.Fprintf(w, "%s", jo)
+	w.Write(jo)
 }

@@ -6,8 +6,8 @@ import (
 )
 
 type ApiError struct {
-	Code  int    `json:"code"`
-	Error string `json:"error"`
+	Code  int    `json: "code"`
+	Error string `json: "error"`
 }
 
 type ApiResponse struct {
@@ -25,6 +25,8 @@ func WriteErrorResponse(res http.ResponseWriter, err error) {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(200)
 	res.Write(bytes)
 }
 
