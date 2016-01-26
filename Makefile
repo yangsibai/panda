@@ -6,7 +6,7 @@ build:
 stop:
 	-lsof -t -i:${PORT} | xargs kill
 
-run: stop build
+run: build
 	nohup ./panda>/dev/null 2>&1 &
 
 test:
