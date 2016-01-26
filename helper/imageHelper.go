@@ -6,6 +6,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"os"
+	"strings"
 )
 
 func GetImageDimensions(filepath string) (width int, height int) {
@@ -27,7 +28,7 @@ func CreateThumbnail(filepath, extension, outpath string, width uint) error {
 		return err
 	}
 	var img image.Image
-	if extension == ".png" {
+	if isPNG(extension) {
 		img, err = png.Decode(file)
 	} else {
 		img, err = jpeg.Decode(file)
@@ -44,10 +45,14 @@ func CreateThumbnail(filepath, extension, outpath string, width uint) error {
 		return err
 	}
 	defer out.Close()
-	if extension == ".png" {
+	if isPNG(extension) {
 		png.Encode(out, m)
 	} else {
 		jpeg.Encode(out, m, nil)
 	}
 	return nil
+}
+
+func isPNG(extension string) bool {
+	return strings.ToLower(extension) == ".png"
 }
