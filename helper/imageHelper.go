@@ -6,7 +6,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"os"
-	"strings"
 )
 
 func GetImageDimensions(filepath string) (width int, height int) {
@@ -28,7 +27,9 @@ func CreateThumbnail(filepath, extension, outpath string, width uint) error {
 		return err
 	}
 	var img image.Image
-	if isPNG(extension) {
+	isPNG := getFormat(file) == "png"
+
+	if isPNG {
 		img, err = png.Decode(file)
 	} else {
 		img, err = jpeg.Decode(file)
@@ -45,7 +46,7 @@ func CreateThumbnail(filepath, extension, outpath string, width uint) error {
 		return err
 	}
 	defer out.Close()
-	if isPNG(extension) {
+	if isPNG {
 		png.Encode(out, m)
 	} else {
 		jpeg.Encode(out, m, nil)
@@ -53,6 +54,23 @@ func CreateThumbnail(filepath, extension, outpath string, width uint) error {
 	return nil
 }
 
-func isPNG(extension string) bool {
-	return strings.ToLower(extension) == ".png"
+func getFormat(file *os.File) string {
+	bytes := make([]byte, 4)
+	n, _ := file.ReadAt(bytes, 0)
+	if n < 4 {
+		return ""
+	}
+	if bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47 {
+		return "png"
+	}
+	if bytes[0] == 0xFF && bytes[1] == 0xD8 {
+		return "jpg"
+	}
+	if bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x38 {
+		return "gif"
+	}
+	if bytes[0] == 0x42 && bytes[1] == 0x4D {
+		return "bmp"
+	}
+	return ""
 }
