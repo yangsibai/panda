@@ -23,6 +23,7 @@ type ImageInfo struct {
 	Height    int               `json:"height" bson:"height"`
 	URL       string            `json:"URL" bson:"URL"`
 	Resizes   map[string]string `json:"resizes" bson:"resizes"`
+	Hash      helper.HashInfo   `json:"-" bson:"hash"`
 }
 
 func storeImage(info *ImageInfo) (err error) {
@@ -64,6 +65,15 @@ func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 	width, height := helper.GetImageDimensions(savePath)
 
 	URL := config.BaseURL + path
+
+	var hash helper.HashInfo
+
+	hash, err = helper.CalculateBasicHashes(savePath)
+
+	if err != nil {
+		return
+	}
+
 	info = ImageInfo{
 		ID:        newID,
 		Name:      part.FileName(),
@@ -73,9 +83,8 @@ func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 		Width:     width,
 		Height:    height,
 		URL:       URL,
-		Resizes: map[string]string{
-			"w_0": URL,
-		},
+		Resizes:   map[string]string{},
+		Hash:      hash,
 	}
 	err = storeImage(&info)
 	if err != nil {
