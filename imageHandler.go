@@ -37,6 +37,11 @@ func handleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httproute
 		return
 	}
 
+	if width == 0 || width >= info.Width {
+		http.Redirect(w, r, info.URL, 301)
+		return
+	}
+
 	resize_key := fmt.Sprintf("w_%d", width)
 	if val, ok := info.Resizes[resize_key]; ok {
 		http.Redirect(w, r, val, 301)
