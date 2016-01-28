@@ -6,6 +6,6 @@
     "maxSize": 52428800,
     "corHosts": [
         "http://localhost:3000",
-        "http://*.mockplus.cn"
+        "http://*.foo.com"
     ]
 }
