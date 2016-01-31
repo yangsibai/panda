@@ -11,6 +11,7 @@ import (
 	"strconv"
 )
 
+// get single image by id and width
 func handleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
 	widths := r.URL.Query()["w"]

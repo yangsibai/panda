@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/julienschmidt/httprouter"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"io"
 	"mime/multipart"
@@ -13,32 +12,7 @@ import (
 	"time"
 )
 
-type ImageInfo struct {
-	ID        bson.ObjectId     `json:"id" bson:"_id"`
-	Name      string            `json:"name" bson:"name"`
-	BaseDir   string            `json:"-" bson: "baseDir"`
-	Path      string            `json:"path" bson:"path" `
-	Extension string            `json:"extension" bson:"extension"`
-	Width     int               `json:"width" bson:"width"`
-	Height    int               `json:"height" bson:"height"`
-	URL       string            `json:"URL" bson:"URL"`
-	Resizes   map[string]string `json:"resizes" bson:"resizes"`
-	Hash      helper.HashInfo   `json:"-" bson:"hash"`
-}
-
-func storeImage(info *ImageInfo) (err error) {
-	session := getSession()
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
-	C := session.DB("resource").C("image")
-	if err != nil {
-		return
-	}
-	err = C.Insert(&info)
-	return
-}
-
+// save a single image
 func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 	newID := bson.NewObjectId()
 	date := time.Now().Format("20060102")
@@ -58,7 +32,8 @@ func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 
 	defer dst.Close()
 
-	if _, err = io.Copy(dst, part); err != nil {
+	var bytes int64
+	if bytes, err = io.Copy(dst, part); err != nil {
 		return
 	}
 
@@ -85,6 +60,8 @@ func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 		URL:       URL,
 		Resizes:   map[string]string{},
 		Hash:      hash,
+		Size:      bytes,
+		CreatedAt: time.Now(),
 	}
 	err = storeImage(&info)
 	if err != nil {
@@ -93,6 +70,7 @@ func handleSaveSingleImage(part *multipart.Part) (info ImageInfo, err error) {
 	return info, nil
 }
 
+// upload multiple images
 func handleMultipleImagesUpload(res http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	if req.ContentLength > config.MaxSize {
 		http.Error(res, "file too large", http.StatusRequestEntityTooLarge)
@@ -119,6 +97,7 @@ func handleMultipleImagesUpload(res http.ResponseWriter, req *http.Request, _ ht
 	helper.WriteResponse(res, imgs)
 }
 
+// upload single image
 func handleSingleImageUpload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if r.ContentLength > config.MaxSize {
 		http.Error(w, "file too large", http.StatusRequestEntityTooLarge)

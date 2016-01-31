@@ -14,3 +14,17 @@ func getSession() *mgo.Session {
 	}
 	return s
 }
+
+// store image to db
+func storeImage(info *ImageInfo) (err error) {
+	session := getSession()
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+
+	C := session.DB("resource").C("image")
+	if err != nil {
+		return
+	}
+	err = C.Insert(&info)
+	return
+}

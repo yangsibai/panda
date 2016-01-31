@@ -34,15 +34,6 @@ func main() {
 	log.Fatal(http.ListenAndServe(config.Addr, hanlder))
 }
 
-type Configuration struct {
-	Addr     string   `json: "addr"`
-	SaveDir  string   `json: "saveDir"`
-	BaseURL  string   `json: "baseURL"`
-	MongoURL string   `json: "mongo"`
-	CorHosts []string `json: "corHosts"`
-	MaxSize  int64    `json:"maxSize"`
-}
-
 func readConfig() (error, Configuration) {
 	file, _ := os.Open("config.json")
 	decoder := json.NewDecoder(file)

@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// get image info by id
 func handleGetInfo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
 
