@@ -22,9 +22,6 @@ func storeImage(info *ImageInfo) (err error) {
 	session.SetMode(mgo.Monotonic, true)
 
 	C := session.DB("resource").C("image")
-	if err != nil {
-		return
-	}
 	err = C.Insert(&info)
 	return
 }

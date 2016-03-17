@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/julienschmidt/httprouter"
+	"github.com/panda/helper"
 	"gopkg.in/mgo.v2/bson"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
-	"panda/helper"
 	"path/filepath"
 	"time"
 )

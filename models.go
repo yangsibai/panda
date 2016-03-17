@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/panda/helper"
 	"gopkg.in/mgo.v2/bson"
-	"panda/helper"
 	"time"
 )
 
