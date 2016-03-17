@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"github.com/panda/helper"
@@ -19,13 +19,4 @@ type ImageInfo struct {
 	Hash      helper.HashInfo   `json:"-" bson:"hash"`
 	Size      int64             `json:"size" bson:"size"`
 	CreatedAt time.Time         `json:"created" bson: "created"`
-}
-
-type Configuration struct {
-	Addr     string   `json: "addr"`
-	SaveDir  string   `json: "saveDir"`
-	BaseURL  string   `json: "baseURL"`
-	MongoURL string   `json: "mongo"`
-	CorHosts []string `json: "corHosts"`
-	MaxSize  int64    `json:"maxSize"`
 }
