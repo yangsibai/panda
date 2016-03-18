@@ -17,6 +17,44 @@ import (
 	"time"
 )
 
+func getImagePath(info models.ImageInfo, width int) (imgPath string, err error) {
+	if width == 0 || width >= info.Width {
+		imgPath = info.Path
+	} else {
+		resize_key := fmt.Sprintf("w_%d", width)
+		imgPath = fmt.Sprintf(info.Path+"_w_%d", width)
+		if _, exists := info.Resizes[resize_key]; exists == false {
+			originalAbsolutePath := filepath.Join(helper.Config.SaveDir, info.Path)
+			newAbsolutePath := filepath.Join(helper.Config.SaveDir, imgPath)
+			err = helper.CreateThumbnail(originalAbsolutePath, info.Extension, newAbsolutePath, uint(width))
+			if err == nil {
+				info.Resizes[resize_key] = imgPath
+				err = updateImageInfoResize(info.ID, info.Resizes)
+			}
+		}
+	}
+	return
+}
+
+func getImageInfoById(id string) (info models.ImageInfo, err error) {
+	session := db.GetSession()
+	C := session.DB("resource").C("image")
+	defer session.Close()
+
+	oid := bson.ObjectIdHex(id)
+	err = C.FindId(oid).One(&info)
+	return
+}
+
+func updateImageInfoResize(oid bson.ObjectId, resizes map[string]string) (err error) {
+	session := db.GetSession()
+	C := session.DB("resource").C("image")
+	defer session.Close()
+
+	err = C.Update(bson.M{"_id": oid}, bson.M{"$set": bson.M{"resizes": resizes}})
+	return
+}
+
 // get single image by id and width
 func HandleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
@@ -32,48 +70,29 @@ func HandleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httproute
 		}
 	}
 
-	session := db.GetSession()
-	C := session.DB("resource").C("image")
-	defer session.Close()
-
-	info := models.ImageInfo{}
-
-	oid := bson.ObjectIdHex(id)
-	if err := C.FindId(oid).One(&info); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if width == 0 || width >= info.Width {
-		http.Redirect(w, r, info.URL, 301)
-		return
-	}
-
-	resize_key := fmt.Sprintf("w_%d", width)
-	if val, ok := info.Resizes[resize_key]; ok {
-		http.Redirect(w, r, val, 301)
-		return
-	}
-
-	newPath := fmt.Sprintf(info.Path+"_w_%d", width)
-	newAbsolutePath := filepath.Join(helper.Config.SaveDir, newPath)
-	err = helper.CreateThumbnail(filepath.Join(helper.Config.SaveDir, info.Path), info.Extension, newAbsolutePath, uint(width))
+	info, err := getImageInfoById(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if info.Resizes == nil {
-		info.Resizes = map[string]string{}
-	}
-	info.Resizes[resize_key] = helper.Config.BaseURL + newPath
-	change := bson.M{"$set": bson.M{"resizes": info.Resizes}}
-	err = C.Update(bson.M{"_id": oid}, change)
+	imgPath, err := getImagePath(info, width)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, helper.Config.BaseURL+newPath, 301)
+
+	if helper.Config.BaseURL == "" {
+		f, err := os.Open(filepath.Join(helper.Config.SaveDir, imgPath))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer f.Close()
+		io.Copy(w, f)
+	} else {
+		http.Redirect(w, r, helper.Config.BaseURL+imgPath, 301)
+	}
 }
 
 // save a single image
@@ -103,8 +122,6 @@ func handleSaveSingleImage(part *multipart.Part) (info models.ImageInfo, err err
 
 	width, height := helper.GetImageDimensions(savePath)
 
-	URL := helper.Config.BaseURL + path
-
 	var hash models.HashInfo
 
 	hash, err = helper.CalculateBasicHashes(savePath)
@@ -113,11 +130,12 @@ func handleSaveSingleImage(part *multipart.Part) (info models.ImageInfo, err err
 		return
 	}
 
+	URL := filepath.Join(helper.Config.BaseURL, path)
+
 	info = models.ImageInfo{
 		ID:        newID,
 		Name:      part.FileName(),
 		Extension: filepath.Ext(part.FileName()),
-		BaseDir:   helper.Config.SaveDir,
 		Path:      path,
 		Width:     width,
 		Height:    height,

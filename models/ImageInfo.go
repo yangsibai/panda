@@ -8,12 +8,11 @@ import (
 type ImageInfo struct {
 	ID        bson.ObjectId     `json:"id" bson:"_id"`
 	Name      string            `json:"name" bson:"name"`
-	BaseDir   string            `json:"-" bson: "baseDir"`
 	Path      string            `json:"path" bson:"path" `
 	Extension string            `json:"extension" bson:"extension"`
 	Width     int               `json:"width" bson:"width"`
 	Height    int               `json:"height" bson:"height"`
-	URL       string            `json:"URL" bson:"URL"`
+	URL       string            `json:"URL" bson:"-"`
 	Resizes   map[string]string `json:"resizes" bson:"resizes"`
 	Hash      HashInfo          `json:"-" bson:"hash"`
 	Size      int64             `json:"size" bson:"size"`
