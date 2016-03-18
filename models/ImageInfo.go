@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/panda/helper"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )
@@ -16,7 +15,7 @@ type ImageInfo struct {
 	Height    int               `json:"height" bson:"height"`
 	URL       string            `json:"URL" bson:"URL"`
 	Resizes   map[string]string `json:"resizes" bson:"resizes"`
-	Hash      helper.HashInfo   `json:"-" bson:"hash"`
+	Hash      HashInfo          `json:"-" bson:"hash"`
 	Size      int64             `json:"size" bson:"size"`
 	CreatedAt time.Time         `json:"created" bson: "created"`
 }

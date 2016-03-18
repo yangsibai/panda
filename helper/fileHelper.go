@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
+	"github.com/yangsibai/panda/models"
 	"io"
 	"os"
 )
@@ -36,16 +37,9 @@ func IsExists(filename string) (exists bool, err error) {
 	return false, err
 }
 
-type HashInfo struct {
-	Md5    string `json:"md5"`
-	Sha1   string `json:"sha1"`
-	Sha256 string `json:"sha256"`
-	Sha512 string `json:"sha512"`
-}
-
 // Calculate hashes
 // FROM: http://marcio.io/2015/07/calculating-multiple-file-hashes-in-a-single-pass/
-func CalculateBasicHashes(filename string) (info HashInfo, err error) {
+func CalculateBasicHashes(filename string) (info models.HashInfo, err error) {
 	rd, err := os.OpenFile(filename, os.O_RDONLY, 0)
 	if err != nil {
 		return

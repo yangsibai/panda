@@ -1,12 +1,14 @@
 package db
 
 import (
+	"github.com/yangsibai/panda/helper"
+	"github.com/yangsibai/panda/models"
 	"gopkg.in/mgo.v2"
 )
 
-func getSession() *mgo.Session {
+func GetSession() *mgo.Session {
 	// Connect to our local mongo
-	s, err := mgo.Dial(config.MongoURL)
+	s, err := mgo.Dial(helper.Config.MongoURL)
 
 	// Check if connection error, is mongo running?
 	if err != nil {
@@ -16,8 +18,8 @@ func getSession() *mgo.Session {
 }
 
 // store image to db
-func storeImage(info *ImageInfo) (err error) {
-	session := getSession()
+func StoreImage(info *models.ImageInfo) (err error) {
+	session := GetSession()
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 

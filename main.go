@@ -1,57 +1,34 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
-	"github.com/panda/models"
 	"github.com/rs/cors"
+	"github.com/yangsibai/panda/helper"
+	"github.com/yangsibai/panda/routes"
 	"log"
 	"net/http"
-	"os"
 )
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "hello")
 }
 
-var config Configuration
-
 func main() {
 	c := cors.New(cors.Options{
-		AllowedOrigins:   config.CorHosts,
+		AllowedOrigins:   helper.Config.CorHosts,
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST"},
 	})
 
 	router := httprouter.New()
 	router.GET("/", Index)
-	router.POST("/upload/img", handleSingleImageUpload)
-	router.POST("/upload/imgs", handleMultipleImagesUpload)
-	router.GET("/img/:id", handleFetchSingleImage)
-	router.GET("/info/:id", handleGetInfo)
+	router.POST("/upload/img", routes.HandleSingleImageUpload)
+	router.POST("/upload/imgs", routes.HandleMultipleImagesUpload)
+	router.GET("/img/:id", routes.HandleFetchSingleImage)
+	router.GET("/info/:id", routes.HandleGetInfo)
 
 	hanlder := c.Handler(router)
-	log.Fatal(http.ListenAndServe(config.Addr, hanlder))
-}
-
-func readConfig() (error, Configuration) {
-	file, _ := os.Open("config.json")
-	decoder := json.NewDecoder(file)
-	configuration := Configuration{}
-	err := decoder.Decode(&configuration)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal(err)
-		return err, configuration
-	}
-	return nil, configuration
-}
-
-func init() {
-	var err error
-	err, config = readConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Printf("panda is listenning at %s", helper.Config.Addr)
+	log.Fatal(http.ListenAndServe(helper.Config.Addr, hanlder))
 }
