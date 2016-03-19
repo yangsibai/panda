@@ -6,8 +6,7 @@
     "mongo": "mongodb://localhost:27017",
     "maxSize": 52428800,
     "corHosts": [
-        "http://localhost:3000",
         "http://localhost:9021",
-        "http://*.foo.com"
+        "http://*.sibo.io"
     ]
 }
