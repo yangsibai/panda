@@ -82,7 +82,7 @@ func HandleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httproute
 		return
 	}
 
-	if helper.Config.BaseURL == "" {
+	if helper.Config.ResourceServerBaseURL == "" {
 		f, err := os.Open(filepath.Join(helper.Config.SaveDir, imgPath))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -91,7 +91,7 @@ func HandleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httproute
 		defer f.Close()
 		io.Copy(w, f)
 	} else {
-		http.Redirect(w, r, helper.Config.BaseURL+imgPath, 301)
+		http.Redirect(w, r, helper.Config.ResourceServerBaseURL+imgPath, 301)
 	}
 }
 
@@ -130,7 +130,7 @@ func handleSaveSingleImage(part *multipart.Part) (info models.ImageInfo, err err
 		return
 	}
 
-	URL := filepath.Join(helper.Config.BaseURL, path)
+	URL := helper.Config.BaseURL + "/img/" + newID.Hex()
 
 	info = models.ImageInfo{
 		ID:        newID,

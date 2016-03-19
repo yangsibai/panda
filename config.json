@@ -1,11 +1,13 @@
 {
     "addr": ":9020",
     "saveDir": "/Users/massimo/www/static/",
-    "baseURL": "",
+    "baseURL": "http://localhost:9020",
+    "resourceServerBaseURL": "",
     "mongo": "mongodb://localhost:27017",
     "maxSize": 52428800,
     "corHosts": [
         "http://localhost:3000",
+        "http://localhost:9021",
         "http://*.foo.com"
     ]
 }
