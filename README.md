@@ -1,5 +1,5 @@
 ## panda
 
-An image host server.
+An image hosts server.
 
-I'm still working on this. DO NOT USE.
+The documents is coming.
