@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
 	"github.com/yangsibai/panda/helper"
@@ -9,10 +8,6 @@ import (
 	"log"
 	"net/http"
 )
-
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "hello")
-}
 
 func main() {
 	c := cors.New(cors.Options{
@@ -22,10 +17,12 @@ func main() {
 	})
 
 	router := httprouter.New()
-	router.GET("/", Index)
+	router.GET("/", routes.Index)
 	router.POST("/upload/img", routes.HandleSingleImageUpload)
 	router.POST("/upload/imgs", routes.HandleMultipleImagesUpload)
+	router.POST("/upload/file", routes.HandleSingleFileUpload)
 	router.GET("/img/:id", routes.HandleFetchSingleImage)
+	router.GET("/file/:id", routes.HandleFetchSingleFile)
 	router.GET("/info/:id", routes.HandleGetInfo)
 
 	hanlder := c.Handler(router)

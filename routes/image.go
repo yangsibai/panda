@@ -36,16 +36,6 @@ func getImagePath(info models.ImageInfo, width int) (imgPath string, err error) 
 	return
 }
 
-func getImageInfoById(id string) (info models.ImageInfo, err error) {
-	session := db.GetSession()
-	C := session.DB("resource").C("image")
-	defer session.Close()
-
-	oid := bson.ObjectIdHex(id)
-	err = C.FindId(oid).One(&info)
-	return
-}
-
 func updateImageInfoResize(oid bson.ObjectId, resizes map[string]string) (err error) {
 	session := db.GetSession()
 	C := session.DB("resource").C("image")
@@ -70,7 +60,7 @@ func HandleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httproute
 		}
 	}
 
-	info, err := getImageInfoById(id)
+	info, err := db.GetImage(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
