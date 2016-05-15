@@ -14,6 +14,13 @@ import (
 	"time"
 )
 
+func getSimpleContentTypeByFileName(filename string) string {
+	if filepath.Ext(filename) == ".mp3" {
+		return "audio/mp3"
+	}
+	return ""
+}
+
 // save a single image
 func handleSaveSingleFile(part *multipart.Part) (info models.FileInfo, err error) {
 	newID := bson.NewObjectId()
@@ -47,17 +54,18 @@ func handleSaveSingleFile(part *multipart.Part) (info models.FileInfo, err error
 		return
 	}
 
-	URL := helper.Config.BaseURL + "/img/" + newID.Hex()
+	URL := helper.Config.BaseURL + "/file/" + newID.Hex()
 
 	info = models.FileInfo{
-		ID:        newID,
-		Name:      part.FileName(),
-		Extension: filepath.Ext(part.FileName()),
-		Path:      path,
-		URL:       URL,
-		Hash:      hash,
-		Size:      bytes,
-		CreatedAt: time.Now(),
+		ID:          newID,
+		Name:        part.FileName(),
+		Extension:   filepath.Ext(part.FileName()),
+		Path:        path,
+		URL:         URL,
+		Hash:        hash,
+		Size:        bytes,
+		CreatedAt:   time.Now(),
+		ContentType: getSimpleContentTypeByFileName(part.FileName()),
 	}
 	err = db.StoreResource(&info)
 	if err != nil {
@@ -81,15 +89,15 @@ func HandleSingleFileUpload(w http.ResponseWriter, r *http.Request, _ httprouter
 		helper.WriteErrorResponse(w, err)
 		return
 	}
-	img, err := handleSaveSingleFile(part)
+	f, err := handleSaveSingleFile(part)
 	if err != nil {
 		helper.WriteErrorResponse(w, err)
 		return
 	}
-	helper.WriteResponse(w, img)
+	helper.WriteResponse(w, f)
 }
 
-// get single image by id and width
+// get single file
 func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
 	info, err := db.GetFile(id)
@@ -105,6 +113,8 @@ func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter
 			return
 		}
 		defer f.Close()
+
+		w.Header().Set("Content-Type", info.ContentType)
 		io.Copy(w, f)
 	} else {
 		http.Redirect(w, r, helper.Config.ResourceServerBaseURL+info.Path, 301)
