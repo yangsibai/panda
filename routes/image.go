@@ -89,6 +89,7 @@ func HandleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httproute
 func handleSaveSingleImage(part *multipart.Part) (info models.ImageInfo, err error) {
 	newID := bson.NewObjectId()
 	date := time.Now().Format("20060102")
+	ext := filepath.Ext(part.FileName())
 
 	err = helper.CreateDirIfNotExists(filepath.Join(helper.Config.SaveDir, date))
 	if err != nil {
@@ -110,6 +111,8 @@ func handleSaveSingleImage(part *multipart.Part) (info models.ImageInfo, err err
 		return
 	}
 
+	saveKey := filepath.Join("image", date, newID.Hex())
+	helper.UploadObjectToOss2(saveKey, savePath, ext)
 	width, height := helper.GetImageDimensions(savePath)
 
 	var hash models.HashInfo
@@ -125,7 +128,7 @@ func handleSaveSingleImage(part *multipart.Part) (info models.ImageInfo, err err
 	info = models.ImageInfo{
 		ID:        newID,
 		Name:      part.FileName(),
-		Extension: filepath.Ext(part.FileName()),
+		Extension: ext,
 		Path:      path,
 		Width:     width,
 		Height:    height,

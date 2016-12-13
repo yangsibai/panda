@@ -5,6 +5,10 @@
     "resourceServerBaseURL": "",
     "mongo": "mongodb://localhost:27017",
     "maxSize": 52428800,
+    "oss2Endpoint": "",
+    "oss2AccessKeyId": "",
+    "oss2AccesskeySecret": "",
+    "oss2BucketName": "",
     "corHosts": [
         "http://localhost:9021",
         "http://*.sibo.io"
