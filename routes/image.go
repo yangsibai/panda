@@ -9,6 +9,7 @@ import (
 	"github.com/yangsibai/panda/models"
 	"gopkg.in/mgo.v2/bson"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -51,6 +52,7 @@ func HandleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httproute
 	widths := r.URL.Query()["w"]
 	var width int
 	var err error
+	log.Println("width", widths)
 	if len(widths) == 0 || widths[0] == "" {
 		width = 0
 	} else {
