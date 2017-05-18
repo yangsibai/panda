@@ -1,20 +1,17 @@
 package routes
 
 import (
-	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/yangsibai/panda/db"
 	"github.com/yangsibai/panda/helper"
 	"github.com/yangsibai/panda/models"
 	"gopkg.in/mgo.v2/bson"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -101,24 +98,6 @@ func HandleSingleFileUpload(w http.ResponseWriter, r *http.Request, _ httprouter
 	helper.WriteResponse(w, f)
 }
 
-func getImgFilePath(path, ext string, width int) (imgPath string, err error) {
-	if width == 0 {
-		return path, nil
-	}
-	imgPath = fmt.Sprintf(path+"_w_%d", width)
-
-	originalAbsolutePath := filepath.Join(helper.Config.SaveDir, path)
-	newAbsolutePath := filepath.Join(helper.Config.SaveDir, imgPath)
-
-	if _, err := os.Stat(newAbsolutePath); os.IsNotExist(err) {
-		log.Println("create thumbnail")
-		err = helper.CreateThumbnail(originalAbsolutePath, ext, newAbsolutePath, uint(width))
-		log.Println("done", err)
-		return newAbsolutePath, err
-	}
-	return newAbsolutePath, nil
-}
-
 // get single file
 func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
@@ -126,26 +105,6 @@ func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	log.Println(info.Extension, info.Extension == ".png")
-	if strings.ToLower(info.Extension) == ".png" || strings.ToLower(info.Extension) == ".jpg" {
-		width := getWidth(r)
-		log.Println("width", width)
-		imgPath, err := getImgFilePath(info.Path, info.Extension, width)
-		log.Println("error", err, "img path", imgPath)
-		if err != nil {
-			f, err := os.Open(imgPath)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			defer f.Close()
-
-			w.Header().Set("Content-Type", info.ContentType)
-			io.Copy(w, f)
-			return
-		}
 	}
 
 	if helper.Config.ResourceServerBaseURL == "" {
