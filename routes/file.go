@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/yangsibai/panda/db"
 	"github.com/yangsibai/panda/helper"
@@ -11,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -97,6 +99,22 @@ func HandleSingleFileUpload(w http.ResponseWriter, r *http.Request, _ httprouter
 	helper.WriteResponse(w, f)
 }
 
+func getImgFilePath(path, ext string, width int) (imgPath string, err error) {
+	if width == 0 {
+		return path, nil
+	}
+	imgPath = fmt.Sprintf(path+"_w_%d", width)
+
+	originalAbsolutePath := filepath.Join(helper.Config.SaveDir, path)
+	newAbsolutePath := filepath.Join(helper.Config.SaveDir, imgPath)
+
+	if _, err := os.Stat(newAbsolutePath); os.IsNotExist(err) {
+		err = helper.CreateThumbnail(originalAbsolutePath, ext, newAbsolutePath, uint(width))
+		return imgPath, err
+	}
+	return imgPath, nil
+}
+
 // get single file
 func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id := ps.ByName("id")
@@ -104,6 +122,23 @@ func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	if info.Extension == ".png" {
+		width := getWidth(r)
+		imgPath, err := getImgFilePath(info.Path, info.Extension, width)
+		if err != nil {
+			f, err := os.Open(imgPath)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			defer f.Close()
+
+			w.Header().Set("Content-Type", info.ContentType)
+			io.Copy(w, f)
+			return
+		}
 	}
 
 	if helper.Config.ResourceServerBaseURL == "" {
@@ -119,4 +154,19 @@ func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter
 	} else {
 		http.Redirect(w, r, helper.Config.ResourceServerBaseURL+info.Path, 301)
 	}
+}
+
+func getWidth(r *http.Request) int {
+	widths := r.URL.Query()["w"]
+	var width int
+	var err error
+	if len(widths) == 0 || widths[0] == "" {
+		width = 0
+	} else {
+		width, err = strconv.Atoi(widths[0])
+		if err != nil {
+			width = 0
+		}
+	}
+	return width
 }
