@@ -111,7 +111,9 @@ func getImgFilePath(path, ext string, width int) (imgPath string, err error) {
 	newAbsolutePath := filepath.Join(helper.Config.SaveDir, imgPath)
 
 	if _, err := os.Stat(newAbsolutePath); os.IsNotExist(err) {
+		log.Println("create thumbnail")
 		err = helper.CreateThumbnail(originalAbsolutePath, ext, newAbsolutePath, uint(width))
+		log.Println("done", err)
 		return newAbsolutePath, err
 	}
 	return newAbsolutePath, nil
