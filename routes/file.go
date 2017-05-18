@@ -131,7 +131,7 @@ func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter
 		width := getWidth(r)
 		log.Println("width", width)
 		imgPath, err := getImgFilePath(info.Path, info.Extension, width)
-		log.Println("img path", imgPath)
+		log.Println("error", err, "img path", imgPath)
 		if err != nil {
 			f, err := os.Open(imgPath)
 			if err != nil {
