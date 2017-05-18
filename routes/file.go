@@ -125,7 +125,7 @@ func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 
-	log.Printn(info.Extension, info.Extension == ".png")
+	log.Println(info.Extension, info.Extension == ".png")
 	if info.Extension == ".png" {
 		width := getWidth(r)
 		log.Println("width", width)
