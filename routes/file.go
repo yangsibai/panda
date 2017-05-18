@@ -112,9 +112,9 @@ func getImgFilePath(path, ext string, width int) (imgPath string, err error) {
 
 	if _, err := os.Stat(newAbsolutePath); os.IsNotExist(err) {
 		err = helper.CreateThumbnail(originalAbsolutePath, ext, newAbsolutePath, uint(width))
-		return imgPath, err
+		return newAbsolutePath, err
 	}
-	return imgPath, nil
+	return newAbsolutePath, nil
 }
 
 // get single file
