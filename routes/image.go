@@ -61,6 +61,7 @@ func HandleFetchSingleImage(w http.ResponseWriter, r *http.Request, ps httproute
 			width = 0
 		}
 	}
+	log.Println("the width", width)
 
 	info, err := db.GetImage(id)
 	if err != nil {
