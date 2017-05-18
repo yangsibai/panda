@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -126,7 +127,7 @@ func HandleFetchSingleFile(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	log.Println(info.Extension, info.Extension == ".png")
-	if info.Extension == ".png" {
+	if strings.ToLower(info.Extension) == ".png" || strings.ToLower(info.Extension) == ".jpg" {
 		width := getWidth(r)
 		log.Println("width", width)
 		imgPath, err := getImgFilePath(info.Path, info.Extension, width)
