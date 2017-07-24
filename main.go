@@ -27,6 +27,6 @@ func main() {
 	router.GET("/info/:id", routes.HandleGetInfo)
 
 	hanlder := c.Handler(router)
-	log.Printf("panda is listenning at %s", helper.Config.Addr)
+	log.Printf("Panda is listenning at %s", helper.Config.Addr)
 	log.Fatal(http.ListenAndServe(helper.Config.Addr, hanlder))
 }
