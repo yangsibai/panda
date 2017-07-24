@@ -175,6 +175,7 @@ func HandleMultipleImagesUpload(res http.ResponseWriter, req *http.Request, _ ht
 
 // upload single image
 func HandleSingleImageUpload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	log.Println("oh, fuck")
 	if r.ContentLength > helper.Config.MaxSize {
 		http.Error(w, "file too large", http.StatusRequestEntityTooLarge)
 		return
