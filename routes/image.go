@@ -9,6 +9,7 @@ import (
 	"github.com/yangsibai/panda/models"
 	"gopkg.in/mgo.v2/bson"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
