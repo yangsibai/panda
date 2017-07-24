@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	log.Prinln("aha, it's new panda!")
 	c := cors.New(cors.Options{
 		AllowedOrigins:   helper.Config.CorHosts,
 		AllowCredentials: true,
