@@ -111,8 +111,8 @@ func handleSaveSingleImage(part *multipart.Part) (info models.ImageInfo, err err
 		return
 	}
 
-	saveKey := filepath.Join("image", date, newID.Hex())
-	helper.UploadObjectToOss2(saveKey, savePath, ext)
+	//saveKey := filepath.Join("image", date, newID.Hex())
+	//helper.UploadObjectToOss2(saveKey, savePath, ext)
 	width, height := helper.GetImageDimensions(savePath)
 
 	var hash models.HashInfo
