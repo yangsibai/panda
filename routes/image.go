@@ -9,7 +9,6 @@ import (
 	"github.com/yangsibai/panda/models"
 	"gopkg.in/mgo.v2/bson"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -139,10 +138,8 @@ func handleSaveSingleImage(part *multipart.Part) (info models.ImageInfo, err err
 		Size:      bytes,
 		CreatedAt: time.Now(),
 	}
-	log.Println("I'm going to store the image")
 	err = db.StoreImage(&info)
 	if err != nil {
-		log.Println(err)
 		return
 	}
 	return info, nil
@@ -177,7 +174,6 @@ func HandleMultipleImagesUpload(res http.ResponseWriter, req *http.Request, _ ht
 
 // upload single image
 func HandleSingleImageUpload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	log.Println("oh, fuck")
 	if r.ContentLength > helper.Config.MaxSize {
 		http.Error(w, "file too large", http.StatusRequestEntityTooLarge)
 		return
