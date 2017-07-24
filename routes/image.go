@@ -138,6 +138,7 @@ func handleSaveSingleImage(part *multipart.Part) (info models.ImageInfo, err err
 		Size:      bytes,
 		CreatedAt: time.Now(),
 	}
+	log.Println("I'm going to store the image")
 	err = db.StoreImage(&info)
 	if err != nil {
 		return
